@@ -1,15 +1,19 @@
 import torchvision.transforms as transforms
 import os
 from torch.utils.data import Dataset, DataLoader
+
+
 def get_transform():
     transform = transforms.Compose([
-        # transforms.RandomRotation(10),      # rotate 10 degrees
-        # transforms.RandomHorizontalFlip(),  # reverse 50% of images
-        # transforms.Resize(224),             # resize shortest side to 224 pixels
-        # transforms.CenterCrop(224),         # crop longest side to 224 pixels at center
+        # transforms.Resize((224)),
+        # transforms.RandomRotation(degrees=15),
+        # transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.5, 0.5, 0.5],  # recommended values for imagenet
-                             [0.5, 0.5, 0.5])
+                             [0.5, 0.5, 0.5]),
+        # transforms.Normalize([0.485, 0.456, 0.406],  # ImageNet normalization values
+        #                  [0.229, 0.224, 0.225])
+
     ])
     return transform
 
@@ -33,3 +37,15 @@ def load_data(root_dir, batch_size, dataset_instance):
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
     return train_loader, val_loader, test_loader
+
+
+def load_euro_sat_data(train_data_dir, test_data_dir, batch_size, dataset_instance):
+    train_dataset = dataset_instance(root_dir=train_data_dir, split='train', BATCH_SIZE=batch_size)
+    test_dataset = dataset_instance(root_dir=test_data_dir, split='test', BATCH_SIZE=batch_size)
+    print(len(train_dataset))
+    print(len(test_dataset))
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+    return train_loader, test_loader

@@ -1,0 +1,19 @@
+{
+  "batch_size": 64,
+  "model": {
+    "name": "vgg16",
+    "optimizer": "Adam",
+    "scheduler": "StepLR",
+    "learning_rate": 0.001,
+    "num_epochs": 15
+  },
+  "dataset": {
+    "data_dir": "dataset/train",
+    "euro_sat": {
+      "dataset_dir": "Dataset/EuroSAT/2750",
+      "train_set_dir": "Dataset/EuroSAT/train",
+      "test_set_dir": "Dataset/EuroSAT/test",
+      "classes": 5
+    }
+  }
+}
