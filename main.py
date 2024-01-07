@@ -8,7 +8,6 @@ from src.train import ModelTraining
 from src.eurosat_training import EuroSatModelTraining
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
 print(f"using device:{device}")
 
 

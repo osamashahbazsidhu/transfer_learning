@@ -49,7 +49,6 @@ class ModelTraining:
             mobilenet = mobilenet.to(self.device)
             return mobilenet
         elif model_name == "effnet":
-            # Choose an EfficientNet variant (e.g., 'efficientnet-b0')
             effnet = EfficientNet.from_pretrained('efficientnet-b0', num_classes=classes)
             effnet = effnet.to(self.device)
             return effnet
@@ -78,7 +77,6 @@ class ModelTraining:
         criterion = nn.CrossEntropyLoss()
         optimizer = self.get_optimizer(optimizer_name, model, learning_rate)
         schedular = self.get_schedular(schedular_name, optimizer)
-
         train_acc_history = []
         val_acc_history = []
         test_acc_history = []
@@ -106,10 +104,9 @@ class ModelTraining:
                     correct_val += (predicted_val == labels).sum().item()
 
                 accuracy_val = correct_val / total_val
-                val_acc_history.append(accuracy_val)  # Store validation accuracy
+                val_acc_history.append(accuracy_val)
                 print(accuracy_val)
 
-            # Store training accuracy
             model.eval()
             total_train = 0
             correct_train = 0
@@ -129,7 +126,6 @@ class ModelTraining:
             print(
                 f'Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item():.4f}, Val Loss: {val_loss.item():.4f}, Val Accuracy: {accuracy_val * 100:.2f}, Train Accuracy: {accuracy_train * 100:.2f}')
 
-            # Test the model
             model.eval()
             total_test = 0
             correct_test = 0
@@ -142,7 +138,7 @@ class ModelTraining:
                     correct_test += (predicted_test == labels).sum().item()
 
             accuracy_test = correct_test / total_test
-            test_acc_history.append(accuracy_test)  # Store testing accuracy
+            test_acc_history.append(accuracy_test)
             print(f'Test Accuracy: {accuracy_test * 100:.2f}%')
 
         model_path = f'model/{model_name}_resnet18_model.pth'

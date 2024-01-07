@@ -1,14 +1,14 @@
 {
   "batch_size": 64,
   "model": {
-    "name": "vgg16",
-    "optimizer": "Adam",
+    "name": "resnet18",
+    "optimizer": "SGD",
     "scheduler": "StepLR",
     "learning_rate": 0.001,
     "num_epochs": 15
   },
   "dataset": {
-    "data_dir": "dataset/train",
+    "data_dir": "dataset/train/train",
     "euro_sat": {
       "dataset_dir": "Dataset/EuroSAT/2750",
       "train_set_dir": "Dataset/EuroSAT/train",

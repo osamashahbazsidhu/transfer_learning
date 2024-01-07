@@ -6,13 +6,15 @@ from torch.utils.data import Dataset, DataLoader
 def get_transform():
     transform = transforms.Compose([
         # transforms.Resize((224)),
-        # transforms.RandomRotation(degrees=15),
-        # transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(degrees=15),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
         transforms.ToTensor(),
-        transforms.Normalize([0.5, 0.5, 0.5],  # recommended values for imagenet
-                             [0.5, 0.5, 0.5]),
-        # transforms.Normalize([0.485, 0.456, 0.406],  # ImageNet normalization values
-        #                  [0.229, 0.224, 0.225])
+        # transforms.Normalize([0.5, 0.5, 0.5],
+        #                     [0.5, 0.5, 0.5]),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])
 
     ])
     return transform
@@ -31,11 +33,9 @@ def load_data(root_dir, batch_size, dataset_instance):
     print(f"Number of images in training set: {len(train_dataset)}")
     print(f"Number of images in validation set: {len(valid_dataset)}")
     print(f"Number of images in test set: {len(test_dataset)}")
-
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-
     return train_loader, val_loader, test_loader
 
 
@@ -44,8 +44,6 @@ def load_euro_sat_data(train_data_dir, test_data_dir, batch_size, dataset_instan
     test_dataset = dataset_instance(root_dir=test_data_dir, split='test', BATCH_SIZE=batch_size)
     print(len(train_dataset))
     print(len(test_dataset))
-
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-
     return train_loader, test_loader

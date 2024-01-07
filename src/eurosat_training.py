@@ -6,12 +6,12 @@ import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from efficientnet_pytorch import EfficientNet
 
 
 class EuroSatModelTraining:
     def __init__(self, device):
         self.device = device
-        # self.model = None
         pass
 
     def get_model(self, model_name="resnet18", classes=None):
@@ -25,6 +25,47 @@ class EuroSatModelTraining:
                 nn.Linear(num_features, classes)
             ).to(self.device)
             return resnet
+        elif model_name == "effnet":
+            effnet = EfficientNet.from_pretrained('efficientnet-b0', num_classes=classes)
+            for param in effnet.parameters():
+                param.requires_grad = False
+            num_features = effnet._fc.in_features
+            effnet._fc = nn.Sequential(
+                nn.Dropout(0.5),
+                nn.Linear(num_features, classes)
+            ).to(self.device)
+            effnet = effnet.to(self.device)
+            return effnet
+        elif model_name == "mobilenet":
+            mobilenet = models.mobilenet_v2(pretrained=True)
+            for param in mobilenet.parameters():
+                param.requires_grad = False
+            num_features = mobilenet.classifier[1].in_features
+            mobilenet.classifier[1] = nn.Sequential(
+                nn.Dropout(0.5),
+                nn.Linear(num_features, classes)
+            ).to(self.device)
+            mobilenet = mobilenet.to(self.device)
+            return mobilenet
+        elif model_name == "vgg16":
+            vgg16 = models.vgg16(pretrained=True)
+            for param in vgg16.parameters():
+                param.requires_grad = False
+            num_features = vgg16.classifier[-1].in_features
+            vgg16.classifier[-1] = nn.Sequential(
+                nn.Dropout(0.5),
+                nn.Linear(num_features, classes)
+            ).to(self.device)
+            vgg16 = vgg16.to(self.device)
+            return vgg16
+        elif model_name == "vit":
+            vit_model = timm.create_model('vit_base_patch16_224', pretrained=True)
+            for param in vit_model.parameters():
+                param.requires_grad = False
+            num_features = vit_model.head.in_features
+            vit_model.head = nn.Linear(num_features, classes).to(self.device)
+            vit_model = vit_model.to(self.device)
+            return vit_model
 
     def get_optimizer(self, optimizer_name, model, learning_rate):
         if optimizer_name == "Adam":
@@ -46,19 +87,15 @@ class EuroSatModelTraining:
 
     def train_model(self, model_name, optimizer_name, schedular_name, train_loader, test_loader,
                     num_epochs=25, learning_rate=0.001, classes=None, model_path=None):
-        criterion = nn.CrossEntropyLoss()
         model = self.get_model(model_name, classes=classes)
-        best_val_accuracy = 0.0
         weights_path = model_path
         state_dict = torch.load(weights_path)
         state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
         model.load_state_dict(state_dict, strict=False)
         model = model.to(self.device)
-        # optimizer = torch.optim.RMSprop(fine_tuned_resnet18.resnet18.fc.parameters(), lr=0.001, alpha=0.9)
         criterion = nn.CrossEntropyLoss()
         optimizer = self.get_optimizer(optimizer_name, model, learning_rate)
         schedular = self.get_schedular(schedular_name, optimizer)
-
 
         train_acc_history = []
         test_acc_history = []
@@ -85,13 +122,9 @@ class EuroSatModelTraining:
 
                 accuracy_train = correct_train / total_train
                 train_acc_history.append(accuracy_train)
-            # schedular.step()
-            # schedular.step(val_loss.item())
 
             print(
                 f'Epoch {epoch + 1}/{num_epochs}, Loss: {loss.item():.4f}, Train Accuracy: {accuracy_train * 100:.2f}')
-
-            # Test the model
             model.eval()
             total_test = 0
             correct_test = 0
@@ -104,10 +137,11 @@ class EuroSatModelTraining:
                     correct_test += (predicted_test == labels).sum().item()
 
             accuracy_test = correct_test / total_test
-            test_acc_history.append(accuracy_test)  # Store testing accuracy
+            test_acc_history.append(accuracy_test)
             print(f'Test Accuracy: {accuracy_test * 100:.2f}%')
 
-        torch.save(model.state_dict(), f'results/transfer_learning{model_name}_resnet18_model.pth')
+        torch.save(model.state_dict(),
+                   f'model/transfer_learning{model_name}_resnet18_model.pth')
         plt.figure(figsize=(10, 6))
         plt.plot(range(1, num_epochs + 1), train_acc_history, label='Training Accuracy')
         plt.plot(range(1, num_epochs + 1), test_acc_history, label='Testing Accuracy')
@@ -115,5 +149,6 @@ class EuroSatModelTraining:
         plt.ylabel('Accuracy')
         plt.title('Training, Validation, and Testing Accuracy Curves')
         plt.legend()
-        plt.savefig(f'results/transfer_learning{model_name}_{optimizer_name}_{schedular_name}.png')
+        plt.savefig(
+            f'results/transfer_learning{model_name}_{optimizer_name}_{schedular_name}.png')
         plt.show()
